@@ -15,6 +15,9 @@ install.packages("DT")
 Instalación de gapminder
 install.packages("gapminder")
 
+Istalación de plotly
+install.packages("plotly")
+ 
 Instalación de más temas
 install.packages("ggthemes")/
 install.packages("hrbrthemes")
@@ -31,6 +34,7 @@ library(DT)
 library(knitr)
 library(gapminder)
 library(ggthemes)
+library(plotly)
 ```
 
 # Conjunto de datos
@@ -206,6 +210,158 @@ gapminder |>
   labs(color = "Continente") +
   theme_solarized()
 ```
+
+# Repaso
+
+```{r}
+#| label: repaso
+#| warning: false
+
+# Gráfico de dispersión de cilindrica (displ) y rendimiento en autopista (hwy)
+
+mpg |> #conjunto de datos
+  ggplot(aes(x = displ, y = hwy, colour = class, shape = class)) + # Mapeo de variables.
+  geom_point() + #Capa de puntos
+  geom_smooth(method = "lm") + #Capa de línea de tendencia
+  ggtitle("Relación entre cilindradas (L) el rendimiento en autopista (mpg)")+ 
+  xlab("Cilindrada (L)") +
+  ylab("Rendimiento en autopista (mpg)") +
+  labs(color = "Clase", shape = "Clase") +
+  theme_solarized()
+```
+
+# Paneles (*facets*)
+
+```{r}
+#| label: facets-1
+
+#Gráfico de facets por clase de automóvil
+
+mpg |> 
+  ggplot(aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_wrap(~ class, ncol = 2)
+```
+
+Gráficos en facets de la relación entre el PIB per capita y la esperanz de vida por continente
+
+```{r}
+#| label: facets-2
+
+gapminder |>
+  filter(year == 2007) |>
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+  geom_point() +
+  facet_wrap(~ continent, ncol = 1)
+```
+
+```{r}
+#| label: facets-3
+
+#Gráfico de disperción cilindrada vs millas por galón en autopista
+# + paneles por tipo de automóvil y tipo de tracción
+
+mpg |>
+  ggplot(aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_grid(class ~ drv)
+```
+
+# Colores
+
+```{r}
+#| label: colores-1
+
+#Gráfico de dispersión de peso vs precio de diamantes
+
+diamonds |>
+  ggplot(aes(x = carat, y = price, color = clarity)) +
+  scale_colour_brewer(palette = "Blues", direction = -1) +
+  geom_point() 
+```
+
+# Plotly
+
+```{r}
+#| label: plotly-1
+#| warning: false
+
+grafico_ggplot2 <-
+  mpg |>
+  ggplot(aes(x = displ, y = hwy)) +
+  geom_point(aes(text =  paste0(
+    "Marca: ", manufacturer, "\n", 
+    "Modelo: ", model, "\n", 
+    "Año: ", year, "\n",
+    "Clase: ", class)))
+
+ggplotly(grafico_ggplot2, tooltip = "text")|> 
+  config(locale = "es") 
+```
+
+Gráfico de dispersión que muestre la relación entre el PIB per capita y esperanza de vida en 2007 y al hacer clic en los puntos muestre:
+-El nombre del país
+-El PIB per capita
+-La esperanza de vida
+
+```{r}
+#| label: plotly-2
+#| warning: false
+
+grafico_PIB_2007 <-
+  gapminder |>
+  filter(year == 2007) |>
+  ggplot(aes(x= gdpPercap, y= lifeExp, color = continent)) +
+  geom_point(aes(text= paste0(
+    "País: ", country,  "\n",
+    "PIB: ", gdpPercap,  "\n",
+    "Esperanza de vida: ", lifeExp)))
+
+ggplotly(grafico_PIB_2007, tooltip = "text") |>
+  config(locale = "es")
+```
+
+# Tipos de gráficos
+
+## Histograma
+
+```{r}
+#| label: histograma-1
+
+histograma_ggplot2 <- 
+  gapminder |>
+  filter(year == 2007) |>
+  ggplot(aes(x = gdpPercap, fill = continent)) +
+  geom_histogram(bins = 10) 
+
+ggplotly(histograma_ggplot2) |> 
+  config(locale = "es")
+```
+
+## Histograma facets
+
+```{r}
+#| label: histograma-facets-1
+
+histograma_ggplot2 <- 
+  gapminder |>
+  filter(year == 2007) |>
+  ggplot(aes(x = gdpPercap, fill = continent)) +
+  geom_histogram(bins = 10) +
+  facet_wrap(~ continent)
+
+ggplotly(histograma_ggplot2) |> 
+  config(locale = "es")
+```
+
+
+
+
+
+
+
+
+
 
 
 
