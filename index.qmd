@@ -34,7 +34,9 @@ library(DT)
 library(knitr)
 library(gapminder)
 library(ggthemes)
+library(hrbrthemes)
 library(plotly)
+library(titanic)
 ```
 
 # Conjunto de datos
@@ -327,6 +329,8 @@ ggplotly(grafico_PIB_2007, tooltip = "text") |>
 
 ```{r}
 #| label: histograma-1
+#| message: false
+#| warning: false
 
 histograma_ggplot2 <- 
   gapminder |>
@@ -342,6 +346,8 @@ ggplotly(histograma_ggplot2) |>
 
 ```{r}
 #| label: histograma-facets-1
+#| message: false
+#| warning: false
 
 histograma_ggplot2 <- 
   gapminder |>
@@ -353,6 +359,250 @@ histograma_ggplot2 <-
 ggplotly(histograma_ggplot2) |> 
   config(locale = "es")
 ```
+
+## Gráfico de caja
+
+```{r}
+#| label: caja-1
+#| message: false
+#| warning: false
+
+gapminder |> 
+  filter(year == 2007) |>
+  ggplot(aes(y = gdpPercap)) +
+  geom_boxplot()
+```
+
+```{r}
+#| label: caja-2
+#| message: false
+#| warning: false
+
+grafico_ggplot2 <-
+gapminder |> 
+  filter(year == 2007) |>
+  ggplot(aes(x = continent, y = gdpPercap)) +
+  geom_boxplot() +
+  ggtitle("Distribución del PIB per capita en 2007") +
+  ylab("PIB per capita") +
+  theme_solarized()
+
+ggplotly(grafico_ggplot2) |> 
+  config(locale = "es")
+```
+
+Gráfico de caja que compare los PIB per capita de los países de oceanía para el año 2007
+
+```{r}
+#| label: caja-3
+#| message: false
+#| warning: false
+
+grafico_ggplot2 <-
+gapminder |> 
+  filter(year == 2007, continent == "Oceania") |>
+  ggplot(aes(x = country, y = gdpPercap)) +
+  geom_boxplot() +
+  ggtitle("Distribución del PIB per capita en 2007") +
+  ylab("PIB per capita") +
+  theme_solarized()
+
+ggplotly(grafico_ggplot2) |> 
+  config(locale = "es")
+```
+
+Gráfico de caja que compare los PIB per capita de los países de América del Norte para el año 2007
+
+```{r}
+#| label: caja-4
+#| message: false
+#| warning: false
+
+grafico_ggplot2 <-
+gapminder |> 
+  filter(year == 2007, 
+         country == "Mexico" | 
+           country == "Canada" | 
+           country == "United States") |>
+  ggplot(aes(x = country, y = gdpPercap)) +
+  geom_boxplot() +
+  ggtitle("Distribución del PIB per capita en 2007") +
+  ylab("PIB per capita") +
+  theme_solarized()
+
+ggplotly(grafico_ggplot2) |> 
+  config(locale = "es")
+```
+
+## Gráficos de barras
+
+Gráfico de barras de la cantidad de pasajeros por clase
+
+### Paquete base
+
+```{r}
+#| label: barras-1
+#| message: false
+#| warning: false
+
+pasajeros_por_clase <- table(titanic_train$Pclass)
+
+barplot(
+  height = pasajeros_por_clase
+)
+```
+
+### Ggplot2
+
+### Con transformaciones estadísticas 
+
+```{r}
+#| label: barras-2
+#| message: false
+#| warning: false
+
+titanic_train |>
+  ggplot(aes(x = Pclass)) +
+  geom_bar()
+```
+
+```{r}
+#| label: barras-3
+#| message: false
+#| warning: false
+
+# Gráfico de barras con conteo de países por continente para el año 2007
+grafico_barras_ggplot2 <-
+gapminder |>
+  filter(year == 2007) |>
+  ggplot(aes(x = continent)) +
+  geom_bar(
+    aes(
+      text = paste0(
+        "Cantidad de países: ", after_stat(count)
+      )
+    ),    
+  ) +
+  ggtitle("Cantidad de países por continente") +
+  xlab("Continente") +
+  ylab("Cantidad de países") +
+  labs(caption = "Fuente: Gapminder.org") +
+  theme_economist()
+
+# Gráfico de barras plotly
+ggplotly(grafico_barras_ggplot2, tooltip = "text") |> 
+  config(locale = 'es')
+```
+
+```{r}
+#| label: barras-4
+#| message: false
+#| warning: false
+
+# Gráfico de barras con conteo de países por continente para el año 2007
+grafico_barras_ggplot2 <-
+gapminder |>
+  filter(year == 2007) |>
+  ggplot(aes(x = fct_infreq(continent))) +
+  geom_bar(
+    aes(
+      text = paste0(
+        "Cantidad de países: ", after_stat(count)
+      )
+    )    
+  ) +
+  ggtitle("Cantidad de países por continente") +
+  xlab("Continente") +
+  ylab("Cantidad de países") +
+  labs(caption = "Fuente: Gapminder.org") +
+  theme_economist()
+
+# Gráfico de barras plotly
+ggplotly(grafico_barras_ggplot2, tooltip = "text") |> 
+  config(locale = 'es')
+```
+
+```{r}
+#| label: barras-5
+#| message: false
+#| warning: false
+
+# Gráfico de barras con promedio de esperanza de vida
+# para cada continente para el año 2007
+grafico_barras_ggplot2 <-
+  gapminder |>
+  filter(year == 2007) |>
+  ggplot(aes(x = fct_infreq(continent), y = lifeExp)) +
+  geom_bar(
+    stat = "summary", 
+    fun.y = "mean",
+    aes(
+      text = paste0(
+        "Promedio de esperanza de vida: ", round(after_stat(y), 2)
+      )
+    )
+  ) +
+  ggtitle("Promedio de esperanza de vida por continente en 2007") +
+  xlab("Continente") +
+  ylab("Promedio de esperanza de vida") +
+  labs(caption = "Fuente: Gapminder.org") +
+  theme_economist()
+
+# Gráfico de barras plotly
+ggplotly(grafico_barras_ggplot2, tooltip = "text") |>
+  config(locale = 'es')
+```
+
+### Sin transformaciones estadísticas
+
+```{r}
+#| label: barras-6
+#| message: false
+#| warning: false
+
+pasajeros_por_clase <-
+  titanic_train |>
+  group_by(Pclass) |>
+  summarize(cantidad_pasajeros = n())
+
+pasajeros_por_clase |>
+  ggplot(aes(x = Pclass, y = cantidad_pasajeros)) +
+  geom_col()
+```
+
+Gráfico de barras del PIB per capita de los países de América para el año 2007
+
+```{r}
+#| label: barras-7
+#| message: false
+#| warning: false
+
+PIB_paises_America <-
+  gapminder |>
+  filter(year == 2007, continent == "Americas") |>
+  select(country, gdpPercap) |>
+  arrange(desc(gdpPercap))
+
+PIB_paises_America |>
+  ggplot(aes(x = reorder(country, gdpPercap), y = gdpPercap)) +
+  geom_col() +
+  coord_flip() +
+  ggtitle("PIB per capita de los países de America") +
+  xlab("País") +
+  ylab("PIB per capita") +
+  theme_solarized()
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
